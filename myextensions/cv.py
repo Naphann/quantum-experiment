@@ -33,19 +33,51 @@ class CvGate(Gate):
 
     def inverse(self):
         """Invert this gate."""
-        return Cu3Gate(-np.pi/2, -np.pi/2, np.pi/2)
+        return CvdgGate()
 
     def to_matrix(self):
         return 1/2 * np.array([[1 + 1j, 1 - 1j], 
                                [1 - 1j, 1 + 1j]], dtype=complex)
 
-    def say(self):
-        return "hello world"
-        
+
+class CvdgGate(Gate):
+    """controlled-v dagger gate."""
+
+
+    def __init__(self):
+        """Create new cv gate"""
+        super().__init__("cvdg", 2, [])
+
+    def _define(self):
+        """
+        gate cvdg c, t
+        { cu3(-pi/2, -pi/2, pi/2) c,t; }
+        """
+        definition = []
+        q = QuantumRegister(2, "q")
+        rule = [
+            (Cu3Gate(-np.pi/2, -np.pi/2, np.pi/2), [q[0], q[1]], []) 
+        ]
+        for inst in rule:
+            definition.append(inst)
+        self.definition = definition
+
+    def inverse(self):
+        """Invert this gate."""
+        return CvGate()
+
+    def to_matrix(self):
+        return 1/2 * np.array([[1 - 1j, 1 + 1j], 
+                               [1 + 1j, 1 - 1j]], dtype=complex)
 
 def cv(self, ctl, tgt):
     """Apply CV to circuit."""
     return self.append(CvGate(), [ctl, tgt], [])
 
+def cvdg(self, ctl, tgt):
+    """Apply CVDg to circuit."""
+    return self.append(CvdgGate(), [ctl, tgt], [])
+
 
 QuantumCircuit.cv = cv
+QuantumCircuit.cvdg = cvdg
